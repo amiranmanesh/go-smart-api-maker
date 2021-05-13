@@ -25,14 +25,11 @@ func makeSignUpEndpoint(s service.Service) endpoint.Endpoint {
 		req := request.(SignUpRequest)
 		token, err := s.SignUp(ctx, req.Name, req.Email, req.Password)
 		if err != nil {
-			return SignUpResponse{
-				Success: false,
-				Token:   nil,
-			}, err
+			return SignUpResponse{Success: false}, err
 		} else {
 			return SignUpResponse{
 				Success: true,
-				Token:   &token,
+				Token:   token,
 			}, nil
 		}
 	}
@@ -43,14 +40,11 @@ func makeLoginEndpoint(s service.Service) endpoint.Endpoint {
 		req := request.(LoginRequest)
 		token, err := s.Login(ctx, req.Email, req.Password)
 		if err != nil {
-			return LoginResponse{
-				Success: false,
-				Token:   nil,
-			}, err
+			return LoginResponse{Success: false}, err
 		} else {
 			return LoginResponse{
 				Success: true,
-				Token:   &token,
+				Token:   token,
 			}, nil
 		}
 	}
@@ -61,14 +55,11 @@ func makeVerifyEndpoint(s service.Service) endpoint.Endpoint {
 		req := request.(VerifyRequest)
 		userModel, err := s.Verify(ctx, req.Token)
 		if err != nil {
-			return VerifyResponse{
-				Success: false,
-				UserID:  nil,
-			}, err
+			return VerifyResponse{Success: false}, err
 		} else {
 			return VerifyResponse{
 				Success: true,
-				UserID:  &userModel.ID,
+				UserID:  userModel.ID,
 			}, nil
 		}
 	}

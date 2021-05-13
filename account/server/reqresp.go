@@ -13,23 +13,23 @@ type (
 		Password string `json:"password"`
 	}
 	SignUpResponse struct {
-		Success bool    `json:"success"`
-		Token   *string `json:"token"`
+		Success bool   `json:"success"`
+		Token   string `json:"token"`
 	}
 	LoginRequest struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 	LoginResponse struct {
-		Success bool    `json:"success"`
-		Token   *string `json:"token"`
+		Success bool   `json:"success"`
+		Token   string `json:"token"`
 	}
 	VerifyRequest struct {
 		Token string `json:"token"`
 	}
 	VerifyResponse struct {
-		Success bool  `json:"success"`
-		UserID  *uint `json:"user_id"`
+		Success bool `json:"success"`
+		UserID  uint `json:"user_id"`
 	}
 )
 
