@@ -2,19 +2,24 @@ package service
 
 import (
 	"context"
-	"github.com/amiranmanesh/go-smart-api-maker/account/layers"
 	"github.com/amiranmanesh/go-smart-api-maker/account/logic"
 	"github.com/amiranmanesh/go-smart-api-maker/utils/encrypting"
 	"github.com/go-kit/kit/log"
 )
 
-type service struct {
-	repository layers.Repository
-	logger     log.Logger
+type Service interface {
+	SignUp(ctx context.Context, name, email, password string) (string, error)
+	Login(ctx context.Context, email, password string) (string, error)
+	Verify(ctx context.Context, token string) (*logic.User, error)
 }
 
-func NewService(repository layers.Repository, logger log.Logger) layers.Service {
+func NewService(repository logic.Repository, logger log.Logger) Service {
 	return &service{repository, log.With(logger, "service")}
+}
+
+type service struct {
+	repository logic.Repository
+	logger     log.Logger
 }
 
 func (s service) SignUp(ctx context.Context, name, email, password string) (string, error) {

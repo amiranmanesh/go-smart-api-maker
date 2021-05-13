@@ -1,69 +1,74 @@
-package endpoint
+package server
 
 import (
 	"context"
-	"github.com/amiranmanesh/go-smart-api-maker/account/layers"
-	"github.com/amiranmanesh/go-smart-api-maker/account/server"
+	"github.com/amiranmanesh/go-smart-api-maker/account/service"
 	"github.com/go-kit/kit/endpoint"
 )
 
-func MakeEndpoint(s layers.Service) layers.Endpoints {
-	return layers.Endpoints{
+type Endpoints struct {
+	SignUp endpoint.Endpoint
+	Login  endpoint.Endpoint
+	Verify endpoint.Endpoint
+}
+
+func MakeEndpoint(s service.Service) Endpoints {
+	return Endpoints{
 		SignUp: makeSignUpEndpoint(s),
 		Login:  makeLoginEndpoint(s),
 		Verify: makeVerifyEndpoint(s),
 	}
 }
 
-func makeSignUpEndpoint(s layers.Service) endpoint.Endpoint {
+func makeSignUpEndpoint(s service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(server.SignUpRequest)
+		req := request.(SignUpRequest)
 		token, err := s.SignUp(ctx, req.Name, req.Email, req.Password)
 		if err != nil {
-			return server.SignUpResponse{
+			return SignUpResponse{
 				Success: false,
 				Token:   nil,
 			}, err
 		} else {
-			return server.SignUpResponse{
+			return SignUpResponse{
 				Success: true,
-				Token:   token,
+				Token:   &token,
 			}, nil
 		}
 	}
 }
 
-func makeLoginEndpoint(s layers.Service) endpoint.Endpoint {
+func makeLoginEndpoint(s service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(server.LoginRequest)
+		req := request.(LoginRequest)
 		token, err := s.Login(ctx, req.Email, req.Password)
 		if err != nil {
-			return server.LoginResponse{
+			return LoginResponse{
 				Success: false,
 				Token:   nil,
 			}, err
 		} else {
-			return server.LoginResponse{
+			return LoginResponse{
 				Success: true,
-				Token:   token,
+				Token:   &token,
 			}, nil
 		}
 	}
 }
 
-func makeVerifyEndpoint(s layers.Service) endpoint.Endpoint {
+func makeVerifyEndpoint(s service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(server.VerifyRequest)
+		req := request.(VerifyRequest)
 		userModel, err := s.Verify(ctx, req.Token)
 		if err != nil {
-			return server.VerifyResponse{
+			return VerifyResponse{
 				Success: false,
 				UserID:  nil,
 			}, err
 		} else {
-			return server.VerifyResponse{
+			return VerifyResponse{
 				Success: true,
-				UserID:  userModel.ID,
+				UserID:  &userModel.ID,
 			}, nil
 		}
 	}

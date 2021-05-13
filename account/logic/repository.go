@@ -2,23 +2,28 @@ package logic
 
 import (
 	"context"
-	"github.com/amiranmanesh/go-smart-api-maker/account/layers"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"gorm.io/gorm"
 )
 
-type repo struct {
-	db     *gorm.DB
-	logger log.Logger
+type Repository interface {
+	SignUp(ctx context.Context, user User) (string, error)
+	Login(ctx context.Context, user User) (string, error)
+	Verify(ctx context.Context, token string) (*User, error)
 }
 
-func NewRepository(db *gorm.DB, logger log.Logger) layers.Repository {
-	if err := db.AutoMigrate(User{}, AccessToken{}); err != nil {
+func NewRepository(db *gorm.DB, logger log.Logger) Repository {
+	if err := db.AutoMigrate(User{}, UserAccessToken{}); err != nil {
 		level.Error(logger).Log("Repository auto migration failed", err)
 		panic(err)
 	}
 	return &repo{db, log.With(logger, "Repository")}
+}
+
+type repo struct {
+	db     *gorm.DB
+	logger log.Logger
 }
 
 func (r repo) SignUp(ctx context.Context, user User) (string, error) {

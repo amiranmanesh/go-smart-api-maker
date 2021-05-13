@@ -2,14 +2,13 @@ package server
 
 import (
 	"context"
-	"github.com/amiranmanesh/go-smart-api-maker/account/layers"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 //Transport Layer
-func NewHTTPServer(ctx context.Context, endpoints layers.Endpoints) http.Handler {
+func NewHTTPServer(ctx context.Context, endpoints Endpoints) http.Handler {
 	r := mux.NewRouter()
 	r.Use(commonMiddleware)
 

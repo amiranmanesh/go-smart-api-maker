@@ -4,8 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/amiranmanesh/go-smart-api-maker/account/endpoint"
-	"github.com/amiranmanesh/go-smart-api-maker/account/layers"
 	"github.com/amiranmanesh/go-smart-api-maker/account/logic"
 	"github.com/amiranmanesh/go-smart-api-maker/account/server"
 	"github.com/amiranmanesh/go-smart-api-maker/account/service"
@@ -43,7 +41,7 @@ func main() {
 	flag.Parse()
 	ctx := context.Background()
 
-	var srv layers.Service
+	var srv service.Service
 	{
 		repository := logic.NewRepository(getDataBaseModel(), logger)
 		srv = service.NewService(repository, logger)
@@ -56,7 +54,7 @@ func main() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
-	endpoints := endpoint.MakeEndpoint(srv)
+	endpoints := server.MakeEndpoint(srv)
 
 	go func() {
 		handler := server.NewHTTPServer(ctx, endpoints)

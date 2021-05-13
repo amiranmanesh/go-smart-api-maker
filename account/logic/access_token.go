@@ -19,7 +19,7 @@ var verifyAccessTokenError = errors.New("Token verification failed")
 var verifyAccessTokenNotValidError = errors.New("Token is not valid")
 var verifyAccessTokenDoesNotMatchError = errors.New("Token doesn't match")
 
-type AccessToken struct {
+type UserAccessToken struct {
 	gorm.Model
 	User        User `gorm:"foreignkey:user_id;association_foreignkey:id"` // use UserRefer as foreign key
 	UserID      uint
@@ -47,12 +47,12 @@ func generateAccessToken(db *gorm.DB, userID uint) (string, error) {
 		return "", createAccessTokenError
 	}
 
-	var tokenModel = AccessToken{}
+	var tokenModel = UserAccessToken{}
 	tokenModel.UserID = userID
 	tokenModel.AccessToken = tokenString
 
 	//UpdateOrCreate
-	err = db.Scopes(scopeUser(tokenModel.UserID)).Assign(AccessToken{AccessToken: tokenModel.AccessToken}).FirstOrCreate(tokenModel).Error
+	err = db.Scopes(scopeUser(tokenModel.UserID)).Assign(UserAccessToken{AccessToken: tokenModel.AccessToken}).FirstOrCreate(tokenModel).Error
 	if err != nil {
 		return "", createOrUpdateAccessTokenError
 	}
@@ -69,16 +69,16 @@ func verifyAccessToken(db *gorm.DB, token string) (uint, error) {
 	})
 
 	if err != nil {
-		return -1, verifyAccessTokenError
+		return 0, verifyAccessTokenError
 	}
 
 	if !tkn.Valid {
-		return -1, verifyAccessTokenNotValidError
+		return 0, verifyAccessTokenNotValidError
 	}
-	var tokenModel = AccessToken{}
+	var tokenModel = UserAccessToken{}
 
 	if result := db.Scopes(scopeToken(token)).Find(&tokenModel); result.Error != nil {
-		return -1, verifyAccessTokenDoesNotMatchError
+		return 0, verifyAccessTokenDoesNotMatchError
 	}
 
 	return tokenModel.UserID, nil
