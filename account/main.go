@@ -4,7 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/amiranmanesh/go-smart-api-maker/account/logic"
+	"github.com/amiranmanesh/go-smart-api-maker/account/repository"
 	"github.com/amiranmanesh/go-smart-api-maker/account/server"
 	"github.com/amiranmanesh/go-smart-api-maker/account/service"
 	"github.com/amiranmanesh/go-smart-api-maker/utils/env"
@@ -43,7 +43,7 @@ func main() {
 
 	var srv service.Service
 	{
-		repository := logic.NewRepository(getDataBaseModel(), logger)
+		repository := repository.NewRepository(getDataBaseModel(), logger)
 		srv = service.NewService(repository, logger)
 	}
 
