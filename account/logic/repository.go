@@ -15,7 +15,7 @@ type repo struct {
 
 func NewRepository(db *gorm.DB, logger log.Logger) layers.Repository {
 	if err := db.AutoMigrate(User{}, AccessToken{}); err != nil {
-		_ = level.Error(logger).Log("Repository auto migration failed", err)
+		level.Error(logger).Log("Repository auto migration failed", err)
 		panic(err)
 	}
 	return &repo{db, log.With(logger, "Repository")}
@@ -23,16 +23,16 @@ func NewRepository(db *gorm.DB, logger log.Logger) layers.Repository {
 
 func (r repo) SignUp(ctx context.Context, user User) (string, error) {
 	logger := log.With(r.logger, "SignUp")
-	_ = logger.Log("Start")
+	logger.Log("Start")
 
 	if err := user.Save(r.db); err != nil {
-		_ = level.Error(logger).Log("Error is: ", err)
+		level.Error(logger).Log("Error is: ", err)
 		return "", err
 	}
 
 	token, err := generateAccessToken(r.db, user.ID)
 	if err != nil {
-		_ = level.Error(logger).Log("Error is: ", err)
+		level.Error(logger).Log("Error is: ", err)
 		return "", err
 	}
 
@@ -41,16 +41,16 @@ func (r repo) SignUp(ctx context.Context, user User) (string, error) {
 
 func (r repo) Login(ctx context.Context, user User) (string, error) {
 	logger := log.With(r.logger, "Login")
-	_ = logger.Log("Start")
+	logger.Log("Start")
 
 	if err := user.Login(r.db); err != nil {
-		_ = level.Error(logger).Log("Error is: ", err)
+		level.Error(logger).Log("Error is: ", err)
 		return "", err
 	}
 
 	token, err := generateAccessToken(r.db, user.ID)
 	if err != nil {
-		_ = level.Error(logger).Log("Error is: ", err)
+		level.Error(logger).Log("Error is: ", err)
 		return "", err
 	}
 
@@ -59,18 +59,18 @@ func (r repo) Login(ctx context.Context, user User) (string, error) {
 
 func (r repo) Verify(ctx context.Context, token string) (*User, error) {
 	logger := log.With(r.logger, "Verify")
-	_ = logger.Log("Start")
+	logger.Log("Start")
 
 	uid, err := verifyAccessToken(r.db, token)
 	if err != nil {
-		_ = level.Error(logger).Log("Error is: ", err)
+		level.Error(logger).Log("Error is: ", err)
 		return nil, err
 	}
 
 	model := &User{}
 	model.ID = uid
 	if err := model.Find(r.db); err != nil {
-		_ = level.Error(logger).Log("Error is: ", err)
+		level.Error(logger).Log("Error is: ", err)
 		return nil, err
 	}
 
