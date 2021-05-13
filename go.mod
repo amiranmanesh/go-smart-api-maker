@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/gin-gonic/gin v1.7.1
+	github.com/go-kit/kit v0.10.0
 	github.com/go-playground/validator/v10 v10.6.1
 	github.com/google/uuid v1.2.0
 	github.com/joho/godotenv v1.3.0
@@ -13,4 +14,5 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210506145944-38f3c27a63bf
+	gorm.io/gorm v1.21.9
 )
