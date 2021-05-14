@@ -9,7 +9,6 @@ import (
 type Endpoints struct {
 	SignUp      endpoint.Endpoint
 	Login       endpoint.Endpoint
-	Verify      endpoint.Endpoint
 	VerifyToken endpoint.Endpoint
 }
 
@@ -17,7 +16,6 @@ func MakeEndpoint(s service.Service) Endpoints {
 	return Endpoints{
 		SignUp:      makeSignUpEndpoint(s),
 		Login:       makeLoginEndpoint(s),
-		Verify:      makeVerifyEndpoint(s),
 		VerifyToken: makeVerifyTokenEndpoint(s),
 	}
 }
@@ -47,21 +45,6 @@ func makeLoginEndpoint(s service.Service) endpoint.Endpoint {
 			return LoginResponse{
 				Success: true,
 				Token:   token,
-			}, nil
-		}
-	}
-}
-
-func makeVerifyEndpoint(s service.Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(VerifyRequest)
-		userModel, err := s.Verify(ctx, req.Token)
-		if err != nil {
-			return VerifyResponse{Success: false}, err
-		} else {
-			return VerifyResponse{
-				Success: true,
-				UserID:  userModel.ID,
 			}, nil
 		}
 	}

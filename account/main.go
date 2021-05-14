@@ -39,8 +39,8 @@ func main() {
 		)
 	}
 
-	level.Info(logger).Log("msg", "service started")
-	defer level.Info(logger).Log("msg", "service ended")
+	level.Info(logger).Log("msg", "account service started")
+	defer level.Info(logger).Log("msg", "account service ended")
 
 	flag.Parse()
 	ctx := context.Background()
@@ -69,17 +69,14 @@ func main() {
 		errs <- server.ListenAndServe()
 	}()
 
-	lis, err := net.Listen("tcp", "localhost:50051")
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", env.GetEnvItem("GRPC_PORT")))
 	if err != nil {
-		fmt.Printf("Failed to listen %v", err)
-		panic("grpc failed")
+		panic(fmt.Sprintf("Failed to listen %v", err))
 	}
 	go func() {
-
 		baseServer := grpc.NewServer()
 		grpcHandler := server.NewGRPCServer(ctx, endpoints)
 		proto.RegisterAccountServiceServer(baseServer, grpcHandler)
-
 		reflection.Register(baseServer)
 
 		errs <- baseServer.Serve(lis)

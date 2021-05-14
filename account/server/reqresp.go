@@ -25,13 +25,6 @@ type (
 		Success bool   `json:"success"`
 		Token   string `json:"token"`
 	}
-	VerifyRequest struct {
-		Token string `json:"token"`
-	}
-	VerifyResponse struct {
-		Success bool `json:"success"`
-		UserID  uint `json:"user_id"`
-	}
 
 	VerifyTokenRequest struct {
 		Token string `json:"token"`
@@ -64,24 +57,15 @@ func decodeLoginReq(ctx context.Context, r *http.Request) (interface{}, error) {
 	return req, nil
 }
 
-func decodeVerifyReq(ctx context.Context, r *http.Request) (interface{}, error) {
-	var req LoginRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		return nil, err
-	}
-	return req, nil
-}
-
-func decodeVerifyTokenRequest(ctx context.Context, request interface{}) (interface{}, error) {
-	req := request.(*proto.VerifyTokenRequest)
-	return VerifyTokenRequest{Token: req.GetToken()}, nil
-}
-
 func encodeVerifyTokenRequest(ctx context.Context, response interface{}) (interface{}, error) {
 	res := response.(VerifyTokenResponse)
 	return &proto.VerifyTokenResponse{
 		Success: res.Success,
 		UserId:  res.UserID,
 	}, nil
+}
+
+func decodeVerifyTokenRequest(ctx context.Context, request interface{}) (interface{}, error) {
+	req := request.(*proto.VerifyTokenRequest)
+	return VerifyTokenRequest{Token: req.GetToken()}, nil
 }

@@ -45,9 +45,9 @@ func NewGRPCServer(ctx context.Context, endpoints Endpoints) proto.AccountServic
 }
 
 func (s *gRPCServer) VerifyToken(ctx context.Context, req *proto.VerifyTokenRequest) (*proto.VerifyTokenResponse, error) {
-	_, response, error := s.verifyTokenHandler.ServeGRPC(ctx, req)
-	if error != nil {
-		return nil, error
+	_, response, err := s.verifyTokenHandler.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
 	}
 
 	return response.(*proto.VerifyTokenResponse), nil
