@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package account;
+option go_package = "account/proto";
+
+message VerifyTokenRequest {
+  string token = 1;
+}
+
+message VerifyTokenResponse{
+  bool success = 1;
+  int32 user_id = 2;
+}
+
+service AccountService {
+
+  rpc VerifyToken(VerifyTokenRequest) returns (VerifyTokenResponse){};
+}

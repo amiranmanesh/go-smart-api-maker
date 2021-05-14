@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"github.com/amiranmanesh/go-smart-api-maker/account/proto"
 	"net/http"
 )
 
@@ -30,6 +31,14 @@ type (
 	VerifyResponse struct {
 		Success bool `json:"success"`
 		UserID  uint `json:"user_id"`
+	}
+
+	VerifyTokenRequest struct {
+		Token string `json:"token"`
+	}
+	VerifyTokenResponse struct {
+		Success bool  `json:"success"`
+		UserID  int32 `json:"user_id"`
 	}
 )
 
@@ -62,4 +71,17 @@ func decodeVerifyReq(ctx context.Context, r *http.Request) (interface{}, error) 
 		return nil, err
 	}
 	return req, nil
+}
+
+func decodeVerifyTokenRequest(ctx context.Context, request interface{}) (interface{}, error) {
+	req := request.(*proto.VerifyTokenRequest)
+	return VerifyTokenRequest{Token: req.GetToken()}, nil
+}
+
+func encodeVerifyTokenRequest(ctx context.Context, response interface{}) (interface{}, error) {
+	res := response.(VerifyTokenResponse)
+	return &proto.VerifyTokenResponse{
+		Success: res.Success,
+		UserId:  res.UserID,
+	}, nil
 }

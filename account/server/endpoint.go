@@ -7,16 +7,18 @@ import (
 )
 
 type Endpoints struct {
-	SignUp endpoint.Endpoint
-	Login  endpoint.Endpoint
-	Verify endpoint.Endpoint
+	SignUp      endpoint.Endpoint
+	Login       endpoint.Endpoint
+	Verify      endpoint.Endpoint
+	VerifyToken endpoint.Endpoint
 }
 
 func MakeEndpoint(s service.Service) Endpoints {
 	return Endpoints{
-		SignUp: makeSignUpEndpoint(s),
-		Login:  makeLoginEndpoint(s),
-		Verify: makeVerifyEndpoint(s),
+		SignUp:      makeSignUpEndpoint(s),
+		Login:       makeLoginEndpoint(s),
+		Verify:      makeVerifyEndpoint(s),
+		VerifyToken: makeVerifyTokenEndpoint(s),
 	}
 }
 
@@ -60,6 +62,21 @@ func makeVerifyEndpoint(s service.Service) endpoint.Endpoint {
 			return VerifyResponse{
 				Success: true,
 				UserID:  userModel.ID,
+			}, nil
+		}
+	}
+}
+
+func makeVerifyTokenEndpoint(s service.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(VerifyTokenRequest)
+		userModel, err := s.Verify(ctx, req.Token)
+		if err != nil {
+			return VerifyTokenResponse{Success: false}, err
+		} else {
+			return VerifyTokenResponse{
+				Success: true,
+				UserID:  int32(userModel.ID),
 			}, nil
 		}
 	}

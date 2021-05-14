@@ -2,10 +2,16 @@ package server
 
 import (
 	"context"
+	"github.com/amiranmanesh/go-smart-api-maker/account/proto"
+	gt "github.com/go-kit/kit/transport/grpc"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"net/http"
 )
+
+type gRPCServer struct {
+	verifyTokenHandler gt.Handler
+}
 
 //Transport Layer
 func NewHTTPServer(ctx context.Context, endpoints Endpoints) http.Handler {
@@ -25,6 +31,26 @@ func NewHTTPServer(ctx context.Context, endpoints Endpoints) http.Handler {
 	))
 
 	return r
+}
+
+func NewGRPCServer(ctx context.Context, endpoints Endpoints) proto.AccountServiceServer {
+
+	return &gRPCServer{
+		verifyTokenHandler: gt.NewServer(
+			endpoints.VerifyToken,
+			decodeVerifyTokenRequest,
+			encodeVerifyTokenRequest,
+		),
+	}
+}
+
+func (s *gRPCServer) VerifyToken(ctx context.Context, req *proto.VerifyTokenRequest) (*proto.VerifyTokenResponse, error) {
+	_, response, error := s.verifyTokenHandler.ServeGRPC(ctx, req)
+	if error != nil {
+		return nil, error
+	}
+
+	return response.(*proto.VerifyTokenResponse), nil
 }
 
 func commonMiddleware(next http.Handler) http.Handler {

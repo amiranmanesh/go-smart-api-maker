@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/amiranmanesh/go-smart-api-maker/account/proto"
 	"github.com/amiranmanesh/go-smart-api-maker/account/repository"
 	"github.com/amiranmanesh/go-smart-api-maker/account/server"
 	"github.com/amiranmanesh/go-smart-api-maker/account/service"
@@ -11,8 +12,11 @@ import (
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"github.com/juju/errors"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,6 +26,9 @@ import (
 var (
 	httpAddr = flag.String("http.addr", fmt.Sprintf(":%s", env.GetEnvItem("HTTP_PORT")), "HTTP listen address")
 )
+
+type grpcServer struct {
+}
 
 func main() {
 	var logger log.Logger
@@ -63,6 +70,22 @@ func main() {
 			Handler: handler,
 		}
 		errs <- server.ListenAndServe()
+	}()
+
+	lis, err := net.Listen("tcp", "0.0.0.0:50051")
+	if err != nil {
+		fmt.Printf("Failed to listen %v", err)
+		panic("grpc failed")
+	}
+	go func() {
+
+		baseServer := grpc.NewServer()
+		grpcHandler := server.NewGRPCServer(ctx, endpoints)
+		proto.RegisterAccountServiceServer(baseServer, grpcHandler)
+
+		reflection.Register(baseServer)
+
+		errs <- baseServer.Serve(lis)
 	}()
 
 	level.Error(logger).Log("exit", <-errs)
