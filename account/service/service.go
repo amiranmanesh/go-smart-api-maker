@@ -42,5 +42,5 @@ func (s service) Login(ctx context.Context, email, password string) (string, err
 }
 
 func (s service) Verify(ctx context.Context, token string) (*repository.User, error) {
-	return s.Verify(ctx, token)
+	return s.repository.Verify(ctx, token)
 }

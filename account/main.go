@@ -27,9 +27,6 @@ var (
 	httpAddr = flag.String("http.addr", fmt.Sprintf(":%s", env.GetEnvItem("HTTP_PORT")), "HTTP listen address")
 )
 
-type grpcServer struct {
-}
-
 func main() {
 	var logger log.Logger
 	{
@@ -72,7 +69,7 @@ func main() {
 		errs <- server.ListenAndServe()
 	}()
 
-	lis, err := net.Listen("tcp", "0.0.0.0:50051")
+	lis, err := net.Listen("tcp", "localhost:50051")
 	if err != nil {
 		fmt.Printf("Failed to listen %v", err)
 		panic("grpc failed")
