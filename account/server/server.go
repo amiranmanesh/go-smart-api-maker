@@ -3,18 +3,14 @@ package server
 import (
 	"context"
 	"github.com/amiranmanesh/go-smart-api-maker/account/proto"
-	gt "github.com/go-kit/kit/transport/grpc"
+	grpctransport "github.com/go-kit/kit/transport/grpc"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
-type gRPCServer struct {
-	verifyTokenHandler gt.Handler
-}
-
 //Transport Layer
-func NewHTTPServer(ctx context.Context, endpoints Endpoints) http.Handler {
+func NewHTTPServer(endpoints Endpoints) http.Handler {
 	r := mux.NewRouter()
 	r.Use(commonMiddleware)
 
@@ -33,10 +29,13 @@ func NewHTTPServer(ctx context.Context, endpoints Endpoints) http.Handler {
 	return r
 }
 
-func NewGRPCServer(ctx context.Context, endpoints Endpoints) proto.AccountServiceServer {
+type grpcServer struct {
+	verifyTokenHandler grpctransport.Handler
+}
 
-	return &gRPCServer{
-		verifyTokenHandler: gt.NewServer(
+func NewGRPCServer(ctx context.Context, endpoints Endpoints) proto.AccountServiceServer {
+	return &grpcServer{
+		verifyTokenHandler: grpctransport.NewServer(
 			endpoints.VerifyToken,
 			decodeVerifyTokenRequest,
 			encodeVerifyTokenRequest,
@@ -44,7 +43,7 @@ func NewGRPCServer(ctx context.Context, endpoints Endpoints) proto.AccountServic
 	}
 }
 
-func (s *gRPCServer) VerifyToken(ctx context.Context, req *proto.VerifyTokenRequest) (*proto.VerifyTokenResponse, error) {
+func (s *grpcServer) VerifyToken(ctx context.Context, req *proto.VerifyTokenRequest) (*proto.VerifyTokenResponse, error) {
 	_, response, err := s.verifyTokenHandler.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, err

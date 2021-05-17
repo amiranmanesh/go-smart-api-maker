@@ -45,9 +45,9 @@ func main() {
 	flag.Parse()
 	ctx := context.Background()
 
-	var srv service.Service
+	var srv server.IService
 	{
-		repository := repository.NewRepository(getDataBaseModel(), logger)
+		repository := repository.NewAccountRepository(getDataBaseModel(), logger)
 		srv = service.NewService(repository, logger)
 	}
 
@@ -61,7 +61,7 @@ func main() {
 	endpoints := server.MakeEndpoint(srv)
 
 	go func() {
-		handler := server.NewHTTPServer(ctx, endpoints)
+		handler := server.NewHTTPServer(endpoints)
 		server := &http.Server{
 			Addr:    *httpAddr,
 			Handler: handler,
