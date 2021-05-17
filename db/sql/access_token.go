@@ -1,4 +1,4 @@
-package repository
+package sql
 
 import (
 	"errors"
@@ -32,7 +32,7 @@ type claims struct {
 	jwt.StandardClaims
 }
 
-func generateAccessToken(db *gorm.DB, userID uint) (string, error) {
+func GenerateAccessToken(db *gorm.DB, userID uint) (string, error) {
 	claims := &claims{
 		UserId: userID,
 		StandardClaims: jwt.StandardClaims{
@@ -61,7 +61,7 @@ func generateAccessToken(db *gorm.DB, userID uint) (string, error) {
 
 }
 
-func verifyAccessToken(db *gorm.DB, token string) (uint, error) {
+func VerifyAccessToken(db *gorm.DB, token string) (uint, error) {
 	claims := &claims{}
 
 	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (i interface{}, err error) {

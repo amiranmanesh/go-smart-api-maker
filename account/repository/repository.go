@@ -2,40 +2,41 @@ package repository
 
 import (
 	"context"
+	"github.com/amiranmanesh/go-smart-api-maker/account/service"
+	"github.com/amiranmanesh/go-smart-api-maker/db/sql"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
 	"gorm.io/gorm"
 )
 
-type Repository interface {
-	SignUp(ctx context.Context, user User) (string, error)
-	Login(ctx context.Context, user User) (string, error)
-	Verify(ctx context.Context, token string) (*User, error)
-}
-
-func NewRepository(db *gorm.DB, logger log.Logger) Repository {
-	if err := db.AutoMigrate(User{}, UserAccessToken{}); err != nil {
+func NewAccountRepository(db *gorm.DB, logger log.Logger) service.IRepository {
+	if err := db.AutoMigrate(sql.User{}, sql.UserAccessToken{}); err != nil {
 		level.Error(logger).Log("Repository auto migration failed", err)
 		panic(err)
 	}
-	return &repo{db, log.With(logger, "Repository")}
+	return &repository{db, log.With(logger, "Repository")}
 }
 
-type repo struct {
+type repository struct {
 	db     *gorm.DB
 	logger log.Logger
 }
 
-func (r repo) SignUp(ctx context.Context, user User) (string, error) {
+func (r repository) SignUp(ctx context.Context, name, email, password string) (string, error) {
 	logger := log.With(r.logger, "SignUp")
 	logger.Log("Start")
+
+	user := &sql.User{}
+	user.Name = name
+	user.Email = email
+	user.Password = password
 
 	if err := user.Save(r.db); err != nil {
 		level.Error(logger).Log("Error is: ", err)
 		return "", err
 	}
 
-	token, err := generateAccessToken(r.db, user.ID)
+	token, err := sql.GenerateAccessToken(r.db, user.ID)
 	if err != nil {
 		level.Error(logger).Log("Error is: ", err)
 		return "", err
@@ -44,16 +45,20 @@ func (r repo) SignUp(ctx context.Context, user User) (string, error) {
 	return token, nil
 }
 
-func (r repo) Login(ctx context.Context, user User) (string, error) {
+func (r repository) Login(ctx context.Context, email, password string) (string, error) {
 	logger := log.With(r.logger, "Login")
 	logger.Log("Start")
+
+	user := &sql.User{}
+	user.Email = email
+	user.Password = password
 
 	if err := user.Login(r.db); err != nil {
 		level.Error(logger).Log("Error is: ", err)
 		return "", err
 	}
 
-	token, err := generateAccessToken(r.db, user.ID)
+	token, err := sql.GenerateAccessToken(r.db, user.ID)
 	if err != nil {
 		level.Error(logger).Log("Error is: ", err)
 		return "", err
@@ -62,22 +67,22 @@ func (r repo) Login(ctx context.Context, user User) (string, error) {
 	return token, nil
 }
 
-func (r repo) Verify(ctx context.Context, token string) (*User, error) {
+func (r repository) Verify(ctx context.Context, token string) (uint, error) {
 	logger := log.With(r.logger, "Verify")
 	logger.Log("Start")
 
-	uid, err := verifyAccessToken(r.db, token)
+	uid, err := sql.VerifyAccessToken(r.db, token)
 	if err != nil {
 		level.Error(logger).Log("Error is: ", err)
-		return nil, err
+		return 0, err
 	}
 
-	model := &User{}
+	model := &sql.User{}
 	model.ID = uid
 	if err := model.Find(r.db); err != nil {
 		level.Error(logger).Log("Error is: ", err)
-		return nil, err
+		return 0, err
 	}
 
-	return model, nil
+	return model.ID, nil
 }

@@ -2,17 +2,16 @@ package server
 
 import (
 	"context"
-	"github.com/amiranmanesh/go-smart-api-maker/account/service"
 	"github.com/go-kit/kit/endpoint"
 )
 
-type Endpoints struct {
-	SignUp      endpoint.Endpoint
-	Login       endpoint.Endpoint
-	VerifyToken endpoint.Endpoint
+type IService interface {
+	SignUp(ctx context.Context, name, email, password string) (string, error)
+	Login(ctx context.Context, email, password string) (string, error)
+	Verify(ctx context.Context, token string) (uint, error)
 }
 
-func MakeEndpoint(s service.Service) Endpoints {
+func MakeEndpoint(s IService) Endpoints {
 	return Endpoints{
 		SignUp:      makeSignUpEndpoint(s),
 		Login:       makeLoginEndpoint(s),
@@ -20,7 +19,13 @@ func MakeEndpoint(s service.Service) Endpoints {
 	}
 }
 
-func makeSignUpEndpoint(s service.Service) endpoint.Endpoint {
+type Endpoints struct {
+	SignUp      endpoint.Endpoint
+	Login       endpoint.Endpoint
+	VerifyToken endpoint.Endpoint
+}
+
+func makeSignUpEndpoint(s IService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(SignUpRequest)
 		token, err := s.SignUp(ctx, req.Name, req.Email, req.Password)
@@ -35,7 +40,7 @@ func makeSignUpEndpoint(s service.Service) endpoint.Endpoint {
 	}
 }
 
-func makeLoginEndpoint(s service.Service) endpoint.Endpoint {
+func makeLoginEndpoint(s IService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(LoginRequest)
 		token, err := s.Login(ctx, req.Email, req.Password)
@@ -50,16 +55,16 @@ func makeLoginEndpoint(s service.Service) endpoint.Endpoint {
 	}
 }
 
-func makeVerifyTokenEndpoint(s service.Service) endpoint.Endpoint {
+func makeVerifyTokenEndpoint(s IService) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(VerifyTokenRequest)
-		userModel, err := s.Verify(ctx, req.Token)
+		userID, err := s.Verify(ctx, req.Token)
 		if err != nil {
 			return VerifyTokenResponse{Success: false}, err
 		} else {
 			return VerifyTokenResponse{
 				Success: true,
-				UserID:  int32(userModel.ID),
+				UserID:  int32(userID),
 			}, nil
 		}
 	}
