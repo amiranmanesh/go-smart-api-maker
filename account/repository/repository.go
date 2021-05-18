@@ -36,7 +36,7 @@ func (r repository) SignUp(ctx context.Context, name, email, password string) (s
 		return "", err
 	}
 
-	token, err := sql.GenerateAccessToken(r.db, user.ID)
+	token, err := sql.GenerateUserAccessToken(r.db, user.ID)
 	if err != nil {
 		level.Error(logger).Log("Error is: ", err)
 		return "", err
@@ -58,7 +58,7 @@ func (r repository) Login(ctx context.Context, email, password string) (string, 
 		return "", err
 	}
 
-	token, err := sql.GenerateAccessToken(r.db, user.ID)
+	token, err := sql.GenerateUserAccessToken(r.db, user.ID)
 	if err != nil {
 		level.Error(logger).Log("Error is: ", err)
 		return "", err
@@ -71,7 +71,7 @@ func (r repository) Verify(ctx context.Context, token string) (uint, error) {
 	logger := log.With(r.logger, "Verify")
 	logger.Log("Start")
 
-	uid, err := sql.VerifyAccessToken(r.db, token)
+	uid, err := sql.VerifyUserAccessToken(r.db, token)
 	if err != nil {
 		level.Error(logger).Log("Error is: ", err)
 		return 0, err

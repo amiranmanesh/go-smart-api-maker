@@ -13,11 +13,11 @@ const (
 	ExpirationTimeDays = 90
 )
 
-var createAccessTokenError = errors.New("Create AccessToken failed")
-var createOrUpdateAccessTokenError = errors.New("Create or update AccessToken failed")
-var verifyAccessTokenError = errors.New("Token verification failed")
-var verifyAccessTokenNotValidError = errors.New("Token is not valid")
-var verifyAccessTokenDoesNotMatchError = errors.New("Token doesn't match")
+var createUserAccessTokenError = errors.New("create user access token failed")
+var createOrUpdateUserAccessTokenError = errors.New("create or update user access token failed")
+var verifyUserAccessTokenError = errors.New("user token verification failed")
+var verifyUserAccessTokenNotValidError = errors.New("user token is not valid")
+var verifyUserAccessTokenDoesNotMatchError = errors.New("user token doesn't match")
 
 type UserAccessToken struct {
 	gorm.Model
@@ -27,13 +27,13 @@ type UserAccessToken struct {
 }
 
 // for generating token
-type claims struct {
+type userClaims struct {
 	UserId uint `json:"user_id"`
 	jwt.StandardClaims
 }
 
-func GenerateAccessToken(db *gorm.DB, userID uint) (string, error) {
-	claims := &claims{
+func GenerateUserAccessToken(db *gorm.DB, userID uint) (string, error) {
+	claims := &userClaims{
 		UserId: userID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(24 * time.Hour * ExpirationTimeDays).Unix(),
@@ -44,7 +44,7 @@ func GenerateAccessToken(db *gorm.DB, userID uint) (string, error) {
 	tokenString, err := token.SignedString([]byte(env.GetEnvItem("SECRET_KEY")))
 
 	if err != nil {
-		return "", createAccessTokenError
+		return "", createUserAccessTokenError
 	}
 
 	var tokenModel = UserAccessToken{}
@@ -54,31 +54,31 @@ func GenerateAccessToken(db *gorm.DB, userID uint) (string, error) {
 	//UpdateOrCreate
 	err = db.Scopes(scopeUser(tokenModel.UserID)).Assign(UserAccessToken{AccessToken: tokenModel.AccessToken}).FirstOrCreate(tokenModel).Error
 	if err != nil {
-		return "", createOrUpdateAccessTokenError
+		return "", createOrUpdateUserAccessTokenError
 	}
 
 	return tokenModel.AccessToken, nil
 
 }
 
-func VerifyAccessToken(db *gorm.DB, token string) (uint, error) {
-	claims := &claims{}
+func VerifyUserAccessToken(db *gorm.DB, token string) (uint, error) {
+	claims := &userClaims{}
 
 	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (i interface{}, err error) {
 		return []byte(os.Getenv("SECRET_KEY")), nil
 	})
 
 	if err != nil {
-		return 0, verifyAccessTokenError
+		return 0, verifyUserAccessTokenError
 	}
 
 	if !tkn.Valid {
-		return 0, verifyAccessTokenNotValidError
+		return 0, verifyUserAccessTokenNotValidError
 	}
 	var tokenModel = UserAccessToken{}
 
 	if result := db.Scopes(scopeToken(token)).Find(&tokenModel); result.Error != nil {
-		return 0, verifyAccessTokenDoesNotMatchError
+		return 0, verifyUserAccessTokenDoesNotMatchError
 	}
 
 	return tokenModel.UserID, nil

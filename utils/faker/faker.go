@@ -2,7 +2,7 @@ package faker
 
 import (
 	"errors"
-	"github.com/amiranmanesh/go-smart-api-maker/faker/lib"
+	"github.com/amiranmanesh/go-smart-api-maker/utils/faker/lib"
 	"reflect"
 )
 
