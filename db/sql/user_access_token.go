@@ -21,9 +21,9 @@ var verifyUserAccessTokenDoesNotMatchError = errors.New("user token doesn't matc
 
 type UserAccessToken struct {
 	gorm.Model
-	User        User `gorm:"foreignkey:user_id;association_foreignkey:id"` // use UserRefer as foreign key
-	UserID      uint
-	AccessToken string `gorm:"type:varchar(255);unique_index;not null" json:"access_token"`
+	User      User `gorm:"foreignkey:user_id;association_foreignkey:id"` // use UserRefer as foreign key
+	UserID    uint
+	UserToken string `gorm:"type:varchar(255);unique_index;not null" json:"user_access_token"`
 }
 
 // for generating token
@@ -49,15 +49,15 @@ func GenerateUserAccessToken(db *gorm.DB, userID uint) (string, error) {
 
 	var tokenModel = UserAccessToken{}
 	tokenModel.UserID = userID
-	tokenModel.AccessToken = tokenString
+	tokenModel.UserToken = tokenString
 
 	//UpdateOrCreate
-	err = db.Scopes(scopeUser(tokenModel.UserID)).Assign(UserAccessToken{AccessToken: tokenModel.AccessToken}).FirstOrCreate(tokenModel).Error
+	err = db.Scopes(scopeUserID(tokenModel.UserID)).Assign(UserAccessToken{UserToken: tokenModel.UserToken}).FirstOrCreate(tokenModel).Error
 	if err != nil {
 		return "", createOrUpdateUserAccessTokenError
 	}
 
-	return tokenModel.AccessToken, nil
+	return tokenModel.UserToken, nil
 
 }
 
@@ -77,7 +77,7 @@ func VerifyUserAccessToken(db *gorm.DB, token string) (uint, error) {
 	}
 	var tokenModel = UserAccessToken{}
 
-	if result := db.Scopes(scopeToken(token)).Find(&tokenModel); result.Error != nil {
+	if result := db.Scopes(scopeUserToken(token)).Find(&tokenModel); result.Error != nil {
 		return 0, verifyUserAccessTokenDoesNotMatchError
 	}
 
@@ -85,14 +85,14 @@ func VerifyUserAccessToken(db *gorm.DB, token string) (uint, error) {
 }
 
 //scopes
-func scopeUser(userId uint) func(db *gorm.DB) *gorm.DB {
+func scopeUserID(userId uint) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("user_id = ?", userId)
 	}
 }
 
-func scopeToken(token string) func(db *gorm.DB) *gorm.DB {
+func scopeUserToken(token string) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("access_token = ?", token)
+		return db.Where("user_access_token = ?", token)
 	}
 }
